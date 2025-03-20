@@ -76,6 +76,18 @@ int[][] warningPattern = {
     {0,0,0,1,0,0,0,0,1,0,0,0}
 };
 
+int[][] remotePattern = {
+    {0,0,0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,1,1,0,0,0,0,0},
+    {0,0,0,0,0,1,1,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0,0,0}
+};
+
+
 void setup() {
   size(700, 550);
   
@@ -94,8 +106,21 @@ void setup() {
      .setColorActive(color(0, 200, 0))
      .setColorCaptionLabel(color(0))
      .getCaptionLabel().setFont(font); // Set larger font for label
+     
+     cp5.addTextfield("Set Speed")
+     .setPosition(550, 350)
+     .setSize(125, 30)
+     .setFont(font)
+     .setColorForeground(color(0, 0, 255))
+     .setColor(color(0)) // Set background color (if needed)
+     .setColorValue(color(255)) // Set text color to black
+     .setColorActive(color(255)) // Set active text color to black
+     .setAutoClear(false);
+  cp5.get(Textfield.class, "Set Speed")
+     .getCaptionLabel()
+     .setColor(color(0)); // Set text color to black
   
-  cp5.addSlider("Set Speed") //speed slider
+  /*cp5.addSlider("Set Speed") //speed slider
      .setRange(0, 78.5)
      .setValue(0)
      .setPosition(590, 50)
@@ -106,7 +131,7 @@ void setup() {
      .setColorActive(color(0, 200, 0))
      .setColorCaptionLabel(color(0))
      .setColorValue(color(0))
-     .getCaptionLabel().setFont(font); // Set larger font for label
+     .getCaptionLabel().setFont(font); // Set larger font for label*/
      
     // Speed Input
   cp5.addTextfield("Change Mode")
@@ -206,7 +231,7 @@ void start() {
   } else {
     println("Cannot send command, not connected.");
   }
-  
+  //frameRate(15);
   buggyState = 0;
 }
 
@@ -255,12 +280,12 @@ void parsePacket(byte[] buffer) {
   
   int leftSpeed = bb.getInt();
   int rightSpeed = bb.getInt();
-  println(leftSpeed);
-  println(rightSpeed);
+  //println(leftSpeed);
+  //println(rightSpeed);
   float averagespeed = (leftSpeed + rightSpeed) / 2.0;
   float speed = (averagespeed * pi * r) / 1.8;
-  println(averagespeed);
-  println(speed);
+  //println(averagespeed);
+  //println(speed);
   cp5.getController("speed Dial").setValue(speed); // Update dial
   
   leftWheel = bb.getFloat();
@@ -342,21 +367,22 @@ void copyPattern(int[][] pattern) {
   }
 }
 
+
 void controlEvent(ControlEvent theEvent) {
   if (theEvent.isController()) {
     String controllerName = theEvent.getController().getName();
     
     // Handle Speed Input
     if (controllerName.equals("Set Speed")) {
-      float sliderValue = theEvent.getValue();
+      int newSpeed = Integer.parseInt(theEvent.getStringValue());
       
-        int newSpeed = (int)((sliderValue * 1.8) / (r * pi));
-        println("NEW SPEEEEEED: " + newSpeed);
+        float dnewSpeed = (newSpeed * pi * r) / 1.8 ;
+        println("NEW SPEEEEEED: " + dnewSpeed);
         sendCommandPacket(3, newSpeed);// Assuming command type 4 sets the speed
-        String rValue = String.format("%.1f", sliderValue);
-        println("Speed updated to: " + rValue);
+        //String rValue = String.format("%.1f", sliderValue);
+        //println("Speed updated to: " + rValue);
         
-        theEvent.getController().getCaptionLabel().setText("Speed: " + rValue);
+        //theEvent.getController().getCaptionLabel().setText("Speed: " + rValue);
        }
      if (controllerName.equals("Change Mode")){
        String changeMode = theEvent.getStringValue().toLowerCase();
@@ -379,13 +405,13 @@ void controlEvent(ControlEvent theEvent) {
        
        sendCommandPacket(4, mode);
        println("Mode changed to:" + changeMode);
-       /*if (mode == 0){
+       if (mode == 0){
          copyPattern(arrowPattern);
        }else if (mode == 1){
          copyPattern(cruisePattern);
        } else if (mode == 2){
-         copyPattern(arrowPattern);
-       }*/
+         copyPattern(remotePattern);
+       }
      }
     
     // Handle Reset Distance Button
